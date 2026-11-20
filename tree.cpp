@@ -31,6 +31,8 @@ enum Operations
     SUB = 2,
     MUL = 3,
     DIV = 4,
+    SIN = 5,
+    COS = 6,
 };
 
 enum Vars
@@ -43,15 +45,20 @@ enum Vars
 struct OpInfo
 {
     const char* text;
+
     Operations code;
+
+    bool is_un;
 };
 
 static const OpInfo Ops[] =
 {
-    { "+", ADD },
-    { "-", SUB },
-    { "*", MUL },
-    { "/", DIV },
+    { "+", ADD, false},
+    { "-", SUB, false},
+    { "*", MUL, false},
+    { "/", DIV, false},
+    { "sin", SIN, true},
+    { "cos", COS, true},
 };
 
 #define OPS_COUNT (sizeof(Ops)/sizeof(Ops[0]))
@@ -292,6 +299,15 @@ static const char* ReadAtom(const char* p, char* buf, size_t bufsz)
     return (i == 0) ? NULL : p;
 }
 
+static bool IsUnary(Operations op)
+{
+    if (op == OP_NONE) return false;
+    for (size_t i = 0; i < OPS_COUNT; ++i)
+        if (Ops[i].code == op)
+            return Ops[i].is_un;
+    return false;
+}
+
 Node_t* ParseSubtree(const char** p, Node_t* parent, bool dir, bool* ok)
 {
     *ok = false;
@@ -328,6 +344,13 @@ Node_t* ParseSubtree(const char** p, Node_t* parent, bool dir, bool* ok)
     node->left = ParseSubtree(p, node, LEFT, &lok);
     if (!lok) { TreeFree(node); return NULL; }
 
+    *p = Skip(*p);
+    if (Ops[op].is_un && **p == ')')
+    {
+        (*p)++;
+        *ok = true;
+        return node;
+    }
     node->right = ParseSubtree(p, node, RIGHT, &rok);
     if (!rok) { TreeFree(node); return NULL; }
 

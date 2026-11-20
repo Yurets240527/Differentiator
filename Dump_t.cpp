@@ -115,6 +115,18 @@ static void FprintNodeTex(FILE* out, const Node_t* node)
                     fprintf(out, "}");
                     break;
 
+                case SIN:
+                    fprintf(out, "\\sin\\left(");
+                    FprintNodeTex(out, node->left);
+                    fprintf(out, "\\right)");
+                    break;
+
+                case COS:
+                    fprintf(out, "\\cos\\left(");
+                    FprintNodeTex(out, node->left);
+                    fprintf(out, "\\right)");
+                    break;
+
                 default:
                     fprintf(out, "\\mathrm{?}");
                     break;
